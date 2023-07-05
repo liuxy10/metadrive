@@ -27,7 +27,7 @@ print("We will install the following packages: ", packages)
 version = "0.2.6.0"
 
 install_requires = [
-    "gym==0.19.0",
+    "gym",
     "numpy",
     "matplotlib",
     "pandas",
