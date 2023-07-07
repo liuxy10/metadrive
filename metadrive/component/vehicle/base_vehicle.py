@@ -326,7 +326,13 @@ class BaseVehicle(BaseObject, BaseVehicleState):
         self.set_static(False)
         self.set_position(position, self.HEIGHT / 2 + 1)
         self.origin.setQuat(LQuaternionf(math.cos(heading / 2), 0, 0, math.sin(heading / 2)))
-        self.update_map_info(map)
+        try:
+            self.update_map_info(map)
+        except:
+            possible_lanes = ray_localization(
+            self.heading, self.spawn_place, self.engine, return_all_result=True, use_heading_filter=False
+        )
+            print("[xinyi] check possible_lanes", possible_lanes)
         self.body.clearForces()
         self.body.setLinearVelocity(Vec3(0, 0, 0))
         self.body.setAngularVelocity(Vec3(0, 0, 0))
@@ -611,7 +617,13 @@ class BaseVehicle(BaseObject, BaseVehicleState):
         try:
             idx = possible_lane_indexes.index(self.config["spawn_lane_index"])
         except ValueError:
+            # try:
+            #     lane, new_l_index = possible_lanes[0][:-1]
+            # except IndexError:
+            #     lane, new_l_index = None, None
+            print(possible_lanes)
             lane, new_l_index = possible_lanes[0][:-1]
+            
         else:
             lane, new_l_index = possible_lanes[idx][:-1]
         dest = self.config["destination"]
