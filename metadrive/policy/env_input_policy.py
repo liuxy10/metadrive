@@ -48,9 +48,12 @@ class EnvInputPolicy(BasePolicy):
 
 class EnvInputHeadingAccPolicy(EnvInputPolicy):
 
-    def __init__(self, obj, seed):
-        super(EnvInputPolicy, self).__init__(obj, seed)
+    def __init__(self, obj, seed, disable_clip=True):
+        super(EnvInputHeadingAccPolicy, self).__init__(obj, seed)
         self.heading_pid = PIDController(1.7, 0.01, 3.5)
+        self.obj = obj
+        self.disable_clip = disable_clip
+
     
     def act(self, agent_id):
         """The action space of this policy is [heading angle, acc].
@@ -75,7 +78,10 @@ class EnvInputHeadingAccPolicy(EnvInputPolicy):
         steering = self.steering_control(to_process[0])
         acc = to_process[1]
         action = [steering, acc]
-        action = self.postprocess_action(action)
+        if self.disable_clip:
+            pass
+        else:
+            action = self.postprocess_action(action) 
         self.action_info["action"] = action
         return action
 
@@ -96,7 +102,7 @@ class EnvInputHeadingAccPolicy(EnvInputPolicy):
         Args: 
             target_heading: the target heading angle, which unit is radius.
         """
-        ego_vehicle = self.control_object
+        ego_vehicle = self.obj
         v_heading = ego_vehicle.heading_theta
         steering = self.heading_pid.get_result(target_heading - wrap_to_pi(v_heading))
         return float(steering)

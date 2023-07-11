@@ -253,6 +253,12 @@ class IDMPolicy(BasePolicy):
         # control by PID and IDM
         steering = self.steering_control(steering_target_lane)
         acc = self.acceleration(acc_front_obj, acc_front_dist)
+        if abs(acc) > 1:
+            # print("abs(acc) > 1: current acc = ",acc) 
+            pass
+
+        else:
+            print("benign: current acc = ",acc)
         return [steering, acc]
 
     def move_to_next_road(self):
@@ -467,6 +473,9 @@ class WaymoIDMPolicy(IDMPolicy):
         # else:
         #     steering = self.last_action[0]
         self.last_action = [steering, acc]
+
+        if abs(steering) > 1:
+            print(steering,"!!!!!!!!!!!!!!!!!!!!")
         return [steering, acc]
 
 
