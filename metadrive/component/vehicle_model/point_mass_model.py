@@ -26,9 +26,9 @@ class PointMassModel:
         v = self.state["speed"]
         theta = self.state["heading_theta"]
         # pedal, steering = control[0], control[1]
-        acc, ang_vel = control[0], control[1]
+        acc, heading = control[1], control[0]
         
-        new_theta = theta + ang_vel * dt
+        new_theta = heading
         new_v = v + acc * dt
         new_x = x + new_v * np.cos(new_theta) * dt
         new_y = y + new_v * np.sin(new_theta) * dt
