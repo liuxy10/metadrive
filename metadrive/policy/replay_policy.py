@@ -2,7 +2,7 @@ import numpy as np
 from metadrive.utils.math_utils import wrap_to_pi
 
 from metadrive.policy.base_policy import BasePolicy
-
+from metadrive.component.vehicle_model.point_mass_model import PointMassModel 
 has_rendered = False
 
 # class ReplayPolicy(BasePolicy):
@@ -76,3 +76,45 @@ class ReplayEgoCarPolicy(BasePolicy):
             self.control_object.set_heading_theta(this_heading, rad_to_degree=False)
 
         return [0, 0]
+
+
+class PMKinematicsEgoPolicy(BasePolicy):
+    def __init__(self, control_object, random_seed):
+        super(PMKinematicsEgoPolicy, self).__init__(control_object=control_object)
+        self.dt = 0.1 # waymo dataset timestep
+        
+        self.model = PointMassModel(x = 0, 
+                                    y = 0, 
+                                    speed = 0, 
+                                    heading_theta = 0)
+
+    def act(self,  agent_id):
+        
+        # action = [heading, acceleration]
+        action = self.engine.external_actions[agent_id]
+        if not self.discrete_action:
+            control = action
+        else:
+            control = self.convert_to_continuous_action(action)
+
+        
+
+        pos = self.engine.agent_manager.active_agents['default_agent'].position
+        vel = self.engine.agent_manager.active_agents['default_agent'].velocity
+        speed = np.linalg.norm(vel)
+        # overwrite dynamics
+        self.model.reset(x = pos[0], 
+                         y = pos[1], 
+                         speed = speed, 
+                         heading_theta = 0)
+       
+        next_state = self.model.step(self.dt, control)
+        self.control_object.set_position([next_state['x'], next_state['y']])
+        self.control_object.set_velocity([next_state['speed'] * np.cos(next_state['heading_theta']),
+                                          next_state['speed'] * np.sin(next_state['heading_theta'])] )
+        self.control_object.set_heading_theta(next_state['heading_theta'], rad_to_degree=False)
+
+        return [0, 0]
+        
+
+        

@@ -54,14 +54,17 @@ def test_idm_policy_briefly():
 
 def test_idm_policy_is_moving(render=False, in_test=True):
     # config = {"traffic_mode": "hybrid", "map": "SS", "traffic_density": 1.0}
-    config = {"traffic_mode": "respawn", "map": "SS", "traffic_density": 1.0}
+    config = {"traffic_mode": "respawn", 
+              "map": "SS", 
+              "traffic_density": 1.0, 
+              "agent_policy": IDMPolicy}
     if render:
         config.update({"use_render": True, "manual_control": True})
     env = MetaDriveEnv(config)
     env.reset(force_seed=0)
     last_pos = None
     try:
-        for t in range(100):
+        for t in range(400):
             env.step(env.action_space.sample())
             vs = env.engine.traffic_manager.traffic_vehicles
             # print("Position: ", {str(v)[:4]: v.position for v in vs})
