@@ -80,14 +80,9 @@ class ReplayEgoCarPolicy(BasePolicy):
 class PMKinematicsEgoPolicy(BasePolicy):
     def __init__(self, control_object, random_seed):
         super(PMKinematicsEgoPolicy, self).__init__(control_object=control_object)
-        self.waymo_dt = 0.1 # waymo dataset timestep
-        self.dt = self.engine.global_config["physics_world_step_size"]
-        if not self.waymo_dt / self.dt == int(self.waymo_dt / self.dt):
-            raise ValueError(
-                "The physics world step size must be a divisor of waymo dataset step size!"
-                f" Currently physics world step size is {self.dt}, while waymo dataset step"
-                f" size is {self.waymo_dt}."
-            )
+        # TODO(lijinning): self.dt is set only for waymo dataset.
+        # Should be changed to a parameter instead.
+        self.dt = 0.1 # waymo dataset timestep
 
     def act(self,  agent_id):
         action = self.engine.external_actions[agent_id]
@@ -108,10 +103,7 @@ class PMKinematicsEgoPolicy(BasePolicy):
                 'speed': speed,
                 'heading_theta': heading_theta,
         }
-        num_skip_frames = int(self.waymo_dt / self.dt)
-        for _ in range(num_skip_frames):
-            state = self.step_point_mass_kinematics(state, control, self.dt)
-        next_state = state
+        next_state = self.step_point_mass_kinematics(state, control, self.dt)
 
         self.control_object.set_position([next_state['x'], next_state['y']])
         self.control_object.set_velocity(
