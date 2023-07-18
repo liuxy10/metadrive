@@ -116,11 +116,11 @@ class PMKinematicsEgoPolicy(BasePolicy):
             #         next_state['speed'] * np.sin(next_state['heading_theta']),
             #     ],
             # )
-            self.control_object.set_heading_theta(next_state['heading_theta'], rad_to_degree=False)
+            self.control_object.set_heading_theta(next_state['heading_theta'], rad_to_degree=True)
             self.timestep += 1
             print("self.timestep = ", self.timestep, ", x,y = ", next_state['x'], next_state['y'], ", acc, heading rate = ", control[1], control[0]  )
             self.state = next_state
-            
+
         return [0, 0]
 
     @staticmethod
