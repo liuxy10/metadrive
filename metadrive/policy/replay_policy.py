@@ -83,42 +83,49 @@ class PMKinematicsEgoPolicy(BasePolicy):
         # TODO(lijinning): self.dt is set only for waymo dataset.
         # Should be changed to a parameter instead.
         self.dt = 0.1 # waymo dataset timestep
+        self.use_diff_action = True # TODO: how to pass the flag into this class
+        self.timestep = 0
 
-    def act(self,  agent_id):
-        action = self.engine.external_actions[agent_id]
-        if not self.discrete_action:
-            control = action
-        else:
-            control = self.convert_to_continuous_action(action)
-
-        pos = self.control_object.position
-        vel = self.control_object.velocity
-        speed = np.linalg.norm(vel)
-        heading_theta = self.control_object.heading_theta
+        self.trajectory_data = self.engine.traffic_manager.current_traffic_data
+        self.traj_info = [
+            self.engine.traffic_manager.parse_vehicle_state(
+                self.trajectory_data[self.engine.traffic_manager.sdc_index]["state"], i
+            ) for i in range(len(self.trajectory_data[self.engine.traffic_manager.sdc_index]["state"]))
+        ]
+        self.init_pos = self.traj_info[0]["position"]
+        self.heading = self.traj_info[0]["heading"]
 
         # overwrite dynamics
-        state = {
-                'x': pos[0],
-                'y': pos[1],
-                'speed': speed,
-                'heading_theta': heading_theta,
+        self.state = {
+                'x': self.traj_info[0]["position"][0],
+                'y': self.traj_info[0]["position"][1],
+                'speed': np.linalg.norm(self.traj_info[0]["velocity"]),
+                'heading_theta': self.traj_info[0]["heading"]/180 * np.pi,
         }
-        next_state = self.step_point_mass_kinematics(state, control, self.dt)
 
-        self.control_object.set_position([next_state['x'], next_state['y']])
-        self.control_object.set_velocity(
-            [
-                next_state['speed'] * np.cos(next_state['heading_theta']),
-                next_state['speed'] * np.sin(next_state['heading_theta']),
-            ],
-        )
-        self.control_object.set_heading_theta(next_state['heading_theta'], rad_to_degree=False)
+    def act(self,  agent_id):
+        control = self.engine.external_actions[agent_id]
 
+        if self.timestep < len(self.traj_info):
+            next_state = self.step_point_mass_kinematics(self.state, control, self.dt, self.use_diff_action)
+        
+            self.control_object.set_position([next_state['x'], next_state['y']])
+            # self.control_object.set_velocity(
+            #     [
+            #         next_state['speed'] * np.cos(next_state['heading_theta']),
+            #         next_state['speed'] * np.sin(next_state['heading_theta']),
+            #     ],
+            # )
+            self.control_object.set_heading_theta(next_state['heading_theta'], rad_to_degree=False)
+            self.timestep += 1
+            print("self.timestep = ", self.timestep, ", x,y = ", next_state['x'], next_state['y'], ", acc, heading rate = ", control[1], control[0]  )
+            self.state = next_state
+            
         return [0, 0]
 
     @staticmethod
     def step_point_mass_kinematics(
-            state: dict[str, float], action: list, dt: float
+            state: dict[str, float], action: list, dt: float, use_diff_action: bool
     ) -> dict[str, float]:
         """Obtain next state by the kinematics model.
         
@@ -133,13 +140,23 @@ class PMKinematicsEgoPolicy(BasePolicy):
         v = state["speed"]
         # TODO(lijinning): Should we use heading as BC output?
         theta = state["heading_theta"]
-        heading, acc = action
-        
-        new_theta = heading
-        new_v = v + acc * dt
-        new_x = x + new_v * np.cos(new_theta) * dt
-        new_y = y + new_v * np.sin(new_theta) * dt
-        new_state = dict(x=new_x, y=new_y, speed=new_v, heading_theta=new_theta)
+        if use_diff_action:
+            heading_rate, acc = action
+            new_theta = theta + heading_rate * dt
+            new_v = v + acc * dt
+            new_x = x + new_v * np.cos(new_theta) * dt
+            new_y = y + new_v * np.sin(new_theta) * dt
+            new_state = dict(x=new_x, y=new_y, speed=new_v, heading_theta=new_theta)
+            
+        else: ## TODO: clip speed to [0， +20]
+            heading, speed = action
+            
+            new_theta = heading
+            new_v = speed
+            new_x = x + new_v * np.cos(new_theta) * dt
+            new_y = y + new_v * np.sin(new_theta) * dt
+            new_state = dict(x=new_x, y=new_y, speed=new_v, heading_theta=new_theta)
+
         return new_state
 
         

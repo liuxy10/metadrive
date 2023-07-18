@@ -332,7 +332,6 @@ class BaseVehicle(BaseObject, BaseVehicleState):
             possible_lanes = ray_localization(
             self.heading, self.spawn_place, self.engine, return_all_result=True, use_heading_filter=False
         )
-            print("[xinyi] check possible_lanes", possible_lanes)
         self.body.clearForces()
         self.body.setLinearVelocity(Vec3(0, 0, 0))
         self.body.setAngularVelocity(Vec3(0, 0, 0))
@@ -621,7 +620,7 @@ class BaseVehicle(BaseObject, BaseVehicleState):
             #     lane, new_l_index = possible_lanes[0][:-1]
             # except IndexError:
             #     lane, new_l_index = None, None
-            print(possible_lanes)
+            # print(possible_lanes)
             lane, new_l_index = possible_lanes[0][:-1]
             
         else:
