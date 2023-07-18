@@ -124,9 +124,12 @@ class PMKinematicsEgoPolicy(BasePolicy):
         return [0, 0]
 
     @staticmethod
+    # def step_point_mass_kinematics(
+    #         state: dict[str, float], action: list, dt: float, use_diff_action: bool
+    # ) -> dict[str, float]:
     def step_point_mass_kinematics(
-            state: dict[str, float], action: list, dt: float, use_diff_action: bool
-    ) -> dict[str, float]:
+            state, action, dt, use_diff_action):
+
         """Obtain next state by the kinematics model.
         
         Args: 
