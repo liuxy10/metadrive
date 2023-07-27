@@ -93,6 +93,7 @@ class PMKinematicsEgoPolicy(BasePolicy):
             ) for i in range(len(self.trajectory_data[self.engine.traffic_manager.sdc_index]["state"]))
         ]
         self.init_pos = self.traj_info[0]["position"]
+        self.init_speed = np.linalg.norm(self.traj_info[0]["velocity"])
         self.heading = self.traj_info[0]["heading"]
 
         # overwrite dynamics
@@ -104,21 +105,21 @@ class PMKinematicsEgoPolicy(BasePolicy):
         }
 
     def act(self,  agent_id):
-        control = self.engine.external_actions[agent_id]
+        control = self.engine.external_actions[agent_id] # action get clipped to [-1, +1] before this
 
         if self.timestep < len(self.traj_info):
             next_state = self.step_point_mass_kinematics(self.state, control, self.dt, self.use_diff_action)
-        
+            # print("next_state[speed]", next_state["speed"], "control[1]", control[1])
             self.control_object.set_position([next_state['x'], next_state['y']])
-            # self.control_object.set_velocity(
-            #     [
-            #         next_state['speed'] * np.cos(next_state['heading_theta']),
-            #         next_state['speed'] * np.sin(next_state['heading_theta']),
-            #     ],
-            # )
+            self.control_object.set_velocity(
+                [
+                    next_state['speed'] * np.cos(next_state['heading_theta']),
+                    next_state['speed'] * np.sin(next_state['heading_theta']),
+                ],
+            )
             self.control_object.set_heading_theta(next_state['heading_theta'], rad_to_degree=True)
             self.timestep += 1
-            print("self.timestep = ", self.timestep, ", x,y = ", next_state['x'], next_state['y'], ", acc, heading rate = ", control[1], control[0]  )
+            # print("self.timestep = ", self.timestep, ", x,y = ", next_state['x'], next_state['y'], ", acc, heading rate = ", control[1], control[0]  )
             self.state = next_state
 
         return [0, 0]
