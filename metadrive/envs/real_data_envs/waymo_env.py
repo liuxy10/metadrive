@@ -40,9 +40,9 @@ WAYMO_ENV_CONFIG = dict(
     # ===== Reward Scheme =====
     # See: https://github.com/metadriverse/metadrive/issues/283
     success_reward=10.0,
-    out_of_road_penalty=10.0,
-    crash_vehicle_penalty=10.0,
-    crash_object_penalty=1.0,
+    out_of_road_penalty=0,
+    crash_vehicle_penalty=0,
+    crash_object_penalty=0,
     driving_reward=1.0,
     speed_reward=0.1,
     use_lateral_reward=False,
