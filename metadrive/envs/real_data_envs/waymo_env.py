@@ -51,7 +51,7 @@ WAYMO_ENV_CONFIG = dict(
     # ===== Cost Scheme =====
     crash_vehicle_cost=1.0,
     crash_object_cost=1.0,
-    out_of_road_cost=1.0,
+    out_of_road_cost=5.0,
 
     # ===== Termination Scheme =====
     out_of_route_done=False,
