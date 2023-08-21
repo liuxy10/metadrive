@@ -275,17 +275,21 @@ class BaseVehicle(BaseObject, BaseVehicleState):
 
     def _update_energy_consumption(self):
         """
+        commented for now due to data overflow issue
+
         The calculation method is from
         https://www.researchgate.net/publication/262182035_Reduction_of_Fuel_Consumption_and_Exhaust_Pollutant_Using_Intelligent_Transport_System
         default: 3rd gear, try to use ae^bx to fit it, dp: (90, 8), (130, 12)
         :return: None
+
         """
-        distance = norm(*(self.last_position - self.position)) / 1000  # km
-        step_energy = 3.25 * math.pow(np.e, 0.01 * self.speed) * distance / 100
-        # step_energy is in Liter, we return mL
-        step_energy = step_energy * 1000
-        self.energy_consumption += step_energy  # L/100 km
-        return step_energy, self.energy_consumption
+        # distance = norm(*(self.last_position - self.position)) / 1000  # km
+        # step_energy = 3.25 * math.pow(np.e, 0.01 * self.speed) * distance / 100
+        # # step_energy is in Liter, we return mL
+        # step_energy = step_energy * 1000
+        # self.energy_consumption += step_energy  # L/100 km
+        # return step_energy, self.energy_consumption
+        return 0,0
 
     def reset(
         self,
