@@ -145,6 +145,7 @@ class PMKinematicsEgoPolicy(BasePolicy):
         # TODO(lijinning): Should we use heading as BC output?
         theta = state["heading_theta"]
         if use_diff_action:
+            action = action.reshape(2,)
             heading_rate, acc = action
             new_theta = theta + heading_rate * dt
             new_v = v + acc * dt
